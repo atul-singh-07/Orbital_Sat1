@@ -1,1 +1,383 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORBITAL | EDU-SAT-01</title>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+<style>
+:root{--bg:#050912;--card:rgba(255,255,255,.04);--card2:rgba(255,255,255,.07);--ln:rgba(140,190,255,.14);--tx:#e6f1fb;--dm:#7f97ad;--cy:#4fd1ff;--vi:#8b7bff;--ok:#38d996;--wn:#ffb020;--er:#ff5a5f;--mono:ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;--r:16px}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:radial-gradient(900px 520px at 85% -10%,rgba(79,209,255,.14),transparent 60%),radial-gradient(700px 480px at -5% 105%,rgba(139,123,255,.14),transparent 60%),var(--bg);background-attachment:fixed;color:var(--tx);font:14px/1.5 Inter,system-ui,"Segoe UI",sans-serif;min-height:100vh;transition:background .6s}
+body.lost{background:radial-gradient(900px 520px at 85% -10%,rgba(255,90,95,.16),transparent 60%),radial-gradient(700px 480px at -5% 105%,rgba(255,176,32,.08),transparent 60%),var(--bg);background-attachment:fixed}
+#top{position:sticky;top:0;z-index:6;display:flex;flex-wrap:wrap;gap:8px 22px;align-items:center;padding:10px 20px;background:rgba(5,9,18,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--ln)}
+.brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--cy),var(--vi));display:grid;place-items:center;color:#04101c;font-weight:800;font-size:16px}
+.brand b{letter-spacing:.3em;color:#fff;font-size:15px}.brand span{display:block;font:9px var(--mono);letter-spacing:.2em;color:var(--dm)}
+.kv{font:12px var(--mono)}.kv i{display:block;font:9px var(--mono);color:var(--dm);letter-spacing:.16em;font-style:normal}
+.chip{display:inline-flex;align-items:center;gap:6px;font:600 10px var(--mono);letter-spacing:.1em;padding:3px 10px;border-radius:99px;border:1px solid currentColor;white-space:nowrap;background:rgba(255,255,255,.03)}
+.chip:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.ok{color:var(--ok)}.wn{color:var(--wn)}.er{color:var(--er)}.dm{color:var(--dm)}.cy{color:var(--cy)}
+/* alert banner */
+#alert{display:none;align-items:center;gap:12px;padding:10px 20px;font:600 12px var(--mono);letter-spacing:.08em;border-bottom:1px solid currentColor;position:sticky;top:57px;z-index:5;backdrop-filter:blur(12px)}
+#alert.show{display:flex}#alert.lost{color:var(--er);background:rgba(255,90,95,.12)}#alert.weak{color:var(--wn);background:rgba(255,176,32,.1)}#alert.seek{color:var(--cy);background:rgba(79,209,255,.09)}
+#alert .d{width:10px;height:10px;border-radius:50%;background:currentColor;flex:none}
+.dots:after{content:"";animation:dots 1.6s steps(4,end) infinite}@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%,100%{content:"..."}}
+#app{display:grid;grid-template-columns:200px minmax(0,1fr)}
+nav{padding:16px 10px;position:sticky;top:57px;align-self:start;height:calc(100vh - 57px)}
+nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:12px;color:var(--dm);padding:10px 12px;margin-bottom:4px;font:600 11px var(--mono);letter-spacing:.1em;cursor:pointer;transition:.2s}
+nav button i{font-style:normal;font-size:15px;width:18px;text-align:center}
+nav button:hover{background:var(--card);color:var(--tx)}
+nav button[aria-current=true]{color:#04101c;background:linear-gradient(135deg,var(--cy),#7fe3ff);box-shadow:0 6px 20px rgba(79,209,255,.25)}
+main{padding:18px 20px 40px;min-width:0}.sec{display:none}.sec.on{display:block;animation:fi .35s ease}@keyframes fi{from{opacity:0;transform:translateY(6px)}}
+.p{border:1px solid var(--ln);background:var(--card);border-radius:var(--r);padding:16px 18px;margin-bottom:16px;backdrop-filter:blur(8px)}
+.p h2{margin:0 0 12px;font:600 11px var(--mono);letter-spacing:.22em;color:var(--dm)}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.g2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px}.g2>.p{margin-bottom:16px}
+/* metric cards */
+.c{position:relative;overflow:hidden;border:1px solid var(--ln);border-radius:var(--r);padding:14px 16px;background:linear-gradient(160deg,var(--card2),var(--card));transition:.25s}
+.c:hover{transform:translateY(-2px);border-color:rgba(79,209,255,.4)}
+.c:before{content:"";position:absolute;left:0;top:0;right:0;height:3px;background:var(--ac,var(--cy));opacity:.9}
+.c.stale:before{background:var(--wn)}.c.off:before{background:var(--er)}.c.off,.c.stale{--x:1}
+.c .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.c label{font:600 10px var(--mono);letter-spacing:.12em;color:var(--dm)}
+.c .ic{font-size:18px;opacity:.9}
+.v{font:700 34px/1.1 Inter,system-ui,sans-serif;color:#fff;margin-top:8px;letter-spacing:-.02em}.v.old{color:var(--dm)}.v.txt{font-size:26px}
+.u{font:500 13px var(--mono);color:var(--dm);margin-left:5px}
+.bar2{height:6px;border-radius:99px;background:rgba(255,255,255,.07);margin:10px 0 6px;overflow:hidden}.bar2 i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--ac,var(--cy)),#fff6);transition:width .6s}
+.sp{width:100%;height:28px;display:block;margin-top:6px}
+.s{font:11px var(--mono);color:var(--dm);min-height:14px}
+.c .s{margin-top:4px}
+/* hero */
+.hero{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.radar{width:170px;height:170px;flex:none}
+.radar .sw{transform-origin:100px 100px;animation:sw 3s linear infinite}@keyframes sw{to{transform:rotate(360deg)}}
+.radar .bl{animation:bl 1.6s ease-out infinite}@keyframes bl{0%{r:3;opacity:1}100%{r:12;opacity:0}}
+.hero h3{margin:0;font-size:22px;letter-spacing:-.01em}.hero p{margin:4px 0 12px;color:var(--dm)}
+.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;width:100%;margin-top:14px}
+.mini div{background:rgba(255,255,255,.04);border:1px solid var(--ln);border-radius:12px;padding:8px 10px}.mini i{display:block;font:9px var(--mono);letter-spacing:.14em;color:var(--dm);font-style:normal}.mini b{font:600 13px var(--mono)}
+.lost .radar .sw{stroke:var(--er)}.weak .radar .sw{stroke:var(--wn)}
+table{width:100%;border-collapse:collapse;font:12px var(--mono)}td,th{padding:8px 8px;border-top:1px solid var(--ln);text-align:left;vertical-align:top;word-break:break-word}th{color:var(--dm);font-weight:500;font-size:10px;letter-spacing:.12em}
+.host{position:relative;height:340px;border:1px solid var(--ln);border-radius:14px;overflow:hidden;background:#02050b;transition:filter .6s}
+body.lost .host #cv canvas{filter:grayscale(1) brightness(.45)}
+body.lost .host:after,body.seek .host:after{content:"SIGNAL LOST";position:absolute;inset:0;display:grid;place-items:center;font:700 16px var(--mono);letter-spacing:.3em;color:var(--er);text-shadow:0 0 18px rgba(255,90,95,.6);pointer-events:none;animation:blk 1.4s infinite}
+body.seek .host:after{content:"ACQUIRING SIGNAL";color:var(--cy);text-shadow:0 0 18px rgba(79,209,255,.6)}
+@keyframes blk{50%{opacity:.35}}
+#view3d{height:100%;display:flex;flex-direction:column;background:#02050b}#view3d:fullscreen{height:100vh}
+#cv{flex:1;min-height:0;position:relative}#cv canvas{display:block;width:100%;height:100%;transition:filter .6s}
+#cv .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;font:11px var(--mono);color:var(--wn)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;padding:8px;border-top:1px solid var(--ln);align-items:center}
+button,input,select{background:rgba(255,255,255,.05);color:var(--tx);border:1px solid var(--ln);border-radius:10px;padding:7px 12px;font:11px var(--mono)}
+button{cursor:pointer;letter-spacing:.08em;transition:.2s}button:hover{border-color:var(--cy);color:var(--cy)}button:disabled{opacity:.5;cursor:default}
+:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.ev{list-style:none;margin:0;padding:0;font:12px var(--mono);max-height:420px;overflow:auto}.ev li{padding:7px 0;border-top:1px solid var(--ln)}.ev span{color:var(--dm);margin-right:8px}.ev b{margin-right:6px;font-weight:600}
+pre{background:#02050b;border:1px solid var(--ln);border-radius:12px;padding:10px;overflow:auto;max-height:280px;font:11px var(--mono)}
+[hidden]{display:none!important}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(2,5,11,.97);display:flex;align-items:center;justify-content:center}
+.ov>div{width:min(380px,92vw);border:1px solid var(--ln);border-radius:var(--r);padding:20px;background:#07101d}
+.cw{border:1px solid var(--ln);border-radius:14px;padding:10px;margin-bottom:12px;background:rgba(255,255,255,.02)}.cw div{position:relative;height:210px}
+.set label{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--ln);font:12px var(--mono)}
+.warn{border:1px solid var(--wn);border-radius:12px;color:var(--wn);padding:10px 12px;font:11px var(--mono);margin-bottom:16px;background:rgba(255,176,32,.06)}
+@media(max-width:860px){#app{grid-template-columns:1fr}nav{display:flex;overflow-x:auto;position:static;height:auto;padding:8px;gap:4px}nav button{width:auto;white-space:nowrap;margin:0}.g2{grid-template-columns:1fr}.host{height:280px}#alert{top:0;position:static}.radar{width:130px;height:130px}main{padding:12px}}
+@media(prefers-reduced-motion:no-preference){.pulse{animation:pl 2s infinite}@keyframes pl{50%{opacity:.4}}}
+.rm .pulse,.rm .radar .sw,.rm .radar .bl,.rm .dots:after,.rm .sec.on{animation:none}
+</style></head><body>
+<div id="login" class="ov" hidden><div id="lbox"></div></div>
+<header id="top">
+<div class="brand"><div class="logo">O</div><div><b>ORBITAL</b><span>EDUCATIONAL SPACECRAFT OPERATIONS</span></div></div>
+<div class="kv"><i>VEHICLE</i>EDU-SAT-01</div>
+<div class="kv"><i>CLOCK</i><span id="clk">--</span></div>
+<div class="kv"><i>FIREBASE</i><span id="t-fb"></span></div>
+<div class="kv"><i>SATELLITE LINK</i><span id="t-dev"></span></div>
+</header>
+<div id="alert" role="alert" aria-live="polite"></div>
+<div id="app">
+<nav id="nav" aria-label="Sections">
+<button data-s="overview"><i>◎</i>OVERVIEW</button><button data-s="tel"><i>≋</i>TELEMETRY</button><button data-s="sat"><i>⬡</i>3D SATELLITE</button><button data-s="an"><i>∿</i>ANALYTICS</button><button data-s="evt"><i>☰</i>EVENT LOG</button><button data-s="diag"><i>✚</i>DIAGNOSTICS</button><button data-s="set"><i>⚙</i>SETTINGS</button>
+</nav>
+<main>
+<section class="sec" id="s-overview">
+<div class="g2"><div class="p"><h2>MISSION STATUS</h2><div id="ovst"></div></div>
+<div class="p"><h2>SATELLITE MODEL (ILLUSTRATIVE)</h2><div class="host" id="hostov"></div></div></div>
+<div class="p"><h2>LATEST TELEMETRY</h2><div class="g" id="ovc"></div></div>
+<div class="p"><h2>RECENT EVENTS</h2><ul class="ev" id="ove"></ul></div>
+</section>
+<section class="sec" id="s-tel"><div class="p"><h2>LIVE TELEMETRY</h2><div class="g" id="telc"></div></div><div class="p"><h2>DETAILS</h2><div id="tel"></div></div>
+<div class="p"><h2>NOTES</h2><div class="s">DHT11 has coarse resolution (about 1 °C / 1 %RH). DHT11 and BMP280 temperatures may differ slightly because of sensor placement, response time, calibration and accuracy. Altitude is derived from pressure and a reference pressure; it is not GPS altitude.</div></div></section>
+<section class="sec" id="s-sat"><div class="p"><h2>3D SATELLITE - ILLUSTRATIVE CUBESAT-STYLE MODEL</h2><div class="host" id="hostsat" style="height:min(70vh,620px)"></div>
+<div class="s" style="margin-top:6px">Generic model for visualization only. It does not represent measured position or attitude; no attitude sensor is installed.</div></div></section>
+<section class="sec" id="s-an"><div class="p"><h2>SENSOR ANALYTICS - SESSION HISTORY</h2>
+<div class="bar" style="border:0;padding:0 0 10px"><label for="rng" class="dm">RANGE</label><select id="rng"><option value="5">5 MIN</option><option value="15">15 MIN</option><option value="60">60 MIN</option><option value="0">SESSION</option></select><button id="csv">EXPORT CSV</button></div>
+<div class="s" id="anempty"></div>
+<div class="cw"><div><canvas id="c-t"></canvas></div></div><div class="cw"><div><canvas id="c-h"></canvas></div></div><div class="cw"><div><canvas id="c-p"></canvas></div></div>
+<div id="stats"></div>
+<div class="s">History contains only samples received by this browser since the page loaded. Nothing is persisted or backfilled.</div></div></section>
+<section class="sec" id="s-evt"><div class="p"><h2>EVENT LOG</h2><div class="bar" style="border:0;padding:0 0 10px"><label for="evf" class="dm">SOURCE</label><select id="evf"><option>ALL</option><option>DASHBOARD</option><option>DEVICE</option></select><button id="evc">CLEAR LOG</button></div><ul class="ev" id="evl"></ul></div></section>
+<section class="sec" id="s-diag"><div class="p"><h2>DIAGNOSTICS</h2><table id="diag"></table></div>
+<div class="p"><h2>LATEST PAYLOAD</h2><pre id="pl">NO PAYLOAD</pre></div>
+<div class="p"><h2>EXPECTED SCHEMA AT satellites/EDU-SAT-01/telemetry</h2><pre>{ "heartbeat_ms": 1760000000000,   // epoch ms (NTP-synced) - or a changing "uptime_ms"
+  "uptime_ms": 123456, "firmware_version": "x.y.z",
+  "dht":    { "available": true, "temperature_c": 24.0, "humidity_pct": 55 },
+  "bmp280": { "available": true, "temperature_c": 24.5, "pressure_hpa": 1008.2,
+              "altitude_estimate_m": 12.3, "altitude_calibrated": false, "reference_pressure_hpa": 1013.25 },
+  "pir":    { "motion_detected": false, "warming_up": false },
+  "last_event": { "message": "optional device event", "ts": 1760000000000 } }</pre></div></section>
+<section class="sec set" id="s-set"><div class="warn">SECURITY: this dashboard reads and writes without login. Restrict your Realtime Database rules to the telemetry path only.</div>
+<div class="p"><h2>SETTINGS</h2>
+<label>SIGNAL WEAK AFTER (s)<input id="s-stale" type="number" min="2" max="3600"></label>
+<label>SATELLITE LOST AFTER (s)<input id="s-off" type="number" min="3" max="86400"></label>
+<label>CHART RANGE<select id="s-range"><option value="5">5 MIN</option><option value="15">15 MIN</option><option value="60">60 MIN</option><option value="0">SESSION</option></select></label>
+<label>CLOCK<select id="s-clock"><option value="utc">UTC</option><option value="local">LOCAL</option></select></label>
+<label>3D AUTO-ROTATION<input id="s-rot" type="checkbox"></label>
+<label>REDUCE MOTION (also follows system setting)<input id="s-rm" type="checkbox"></label></div>
+<div class="p"><h2>DATABASE</h2><div class="s">The dashboard creates the telemetry structure automatically when the path is empty. You can also create it by hand or run a demo device that writes simulated readings every 2 seconds.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="b-seed">CREATE DATABASE STRUCTURE</button><button id="b-sim" aria-pressed="false">START DEMO DEVICE</button></div></div></section>
+</main></div>
+<div id="view3d"><div id="cv"></div><div class="bar"><button id="b-reset">RESET CAMERA</button><button id="b-rot" aria-pressed="true">AUTO-ROTATE</button><button id="b-axes" aria-pressed="false">AXES</button><button id="b-fs">FULLSCREEN</button><span class="s">DRAG: ROTATE / WHEEL OR PINCH: ZOOM</span></div></div>
+
+<script type="module">
+const FC={apiKey:"AIzaSyBRHt1_4aMKIhiMV4WAmYlwGsBqbb_p_-4",authDomain:"orbital-satellite.firebaseapp.com",databaseURL:"https://orbital-satellite-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"orbital-satellite",storageBucket:"orbital-satellite.firebasestorage.app",messagingSenderId:"270547292921",appId:"1:270547292921:web:24e88268ac6fccb5a1c828",measurementId:"G-0LVB88XG92"};
+const PATH='satellites/EDU-SAT-01/telemetry',FB='https://www.gstatic.com/firebasejs/10.12.2/';
+const $=i=>document.getElementById(i);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* settings */
+const DEF={stale:10,off:25,range:15,clock:'utc',rot:true,rm:false};
+const ST={...DEF};try{Object.assign(ST,JSON.parse(localStorage.getItem('orbital.settings')))}catch(e){}
+const save=()=>{try{localStorage.setItem('orbital.settings',JSON.stringify(ST))}catch(e){}};
+const mq=matchMedia('(prefers-reduced-motion:reduce)'),rm=()=>ST.rm||mq.matches;
+/* formatting */
+const fmt=(v,d)=>v==null?'\u2014':v.toFixed(d);
+const tm=ms=>{if(ms==null)return '\u2014';const d=new Date(ms);return ST.clock==='utc'?d.toISOString().slice(11,19)+'Z':d.toLocaleTimeString([],{hour12:false})};
+const age=ms=>{if(ms==null)return '\u2014';const s=Math.max(0,Math.round((Date.now()-ms)/1000));return s<60?s+' s':Math.floor(s/60)+' m '+s%60+' s'};
+const up=ms=>{if(ms==null)return '\u2014';const s=ms/1000|0;return Math.floor(s/3600)+'h '+((s/60|0)%60)+'m '+s%60+'s'};
+const chip=(t,c)=>'<span class="chip '+c+'">'+t+'</span>';
+const SC={LIVE:'ok',STALE:'wn',UNAVAILABLE:'er',UNKNOWN:'dm'},sch=s=>chip(s,SC[s]);
+const ageSp=ms=>ms==null?'\u2014':'<span data-age="'+ms+'">'+age(ms)+'</span>';
+/* state */
+const S={fb:'CONNECTING',auth:'CHECKING',sub:'IDLE',user:null,n:null,raw:null,rcv:null,hb:null,hbSrc:null,key:undefined,lv:{},err:null,sig:'',got:false,pm:null,evk:null,s:{d:'UNKNOWN',dht:'UNKNOWN',bmp:'UNKNOWN',pir:'UNKNOWN'},sg:''};
+let H=[],P={},EV=[],sec='overview',evf='ALL',CH=null,V={},unsub=null,fbApi=null;
+function resetData(){Object.assign(S,{n:null,raw:null,rcv:null,hb:null,hbSrc:null,key:undefined,lv:{},err:null,sig:'',got:false,pm:null,evk:null,sub:'IDLE'});H=[];P={}}
+function ev(sev,msg,src='DASHBOARD'){EV.unshift({t:Date.now(),sev,msg,src});if(EV.length>300)EV.pop();renderEv()}
+/* payload normalisation: missing / null / invalid / valid zero are kept distinct */
+function toEpoch(v){let x=typeof v==='number'?(v<1e11?v*1000:v):typeof v==='string'?Date.parse(v):NaN;return x>1.5e12&&x<4e12?x:null}
+function norm(raw){
+ const r={miss:[],bad:[]},g=p=>p.split('.').reduce((a,k)=>a&&typeof a==='object'?a[k]:undefined,raw);
+ const f=ps=>{for(const p of ps){const v=g(p);if(v!==undefined)return v}};
+ const n=(k,ps,lo,hi,opt)=>{const v=f(ps);if(v==null){if(!opt)r.miss.push(k+(v===null?' (null)':''));return null}
+  if(typeof v!=='number'||!isFinite(v)||v<lo||v>hi){r.bad.push(k+'='+JSON.stringify(v));return null}return v};
+ const av=ps=>{const v=f(ps);return typeof v==='boolean'?v:undefined};
+ const dA=av(['dht.available']),bA=av(['bmp280.available','bmp.available']);
+ r.dt=n('dht.temperature_c',['dht.temperature_c','dht.temperature','dht_temperature_c'],-40,80);
+ r.dh=n('dht.humidity_pct',['dht.humidity_pct','dht.humidity','dht_humidity_pct'],0,100);
+ r.bt=n('bmp280.temperature_c',['bmp280.temperature_c','bmp280.temperature','bmp.temperature_c'],-40,85);
+ r.bp=n('bmp280.pressure_hpa',['bmp280.pressure_hpa','bmp280.pressure','bmp.pressure_hpa'],300,1100);
+ r.alt=n('altitude',['bmp280.altitude_estimate_m','bmp280.altitude_m'],-500,9000,1);
+ r.ref=n('reference',['bmp280.reference_pressure_hpa'],800,1100,1);
+ const cal=f(['bmp280.altitude_calibrated']);r.cal=typeof cal==='boolean'?cal:undefined;
+ if(dA===false){r.dt=r.dh=null}if(bA===false){r.bt=r.bp=r.alt=null}
+ r.dOk=dA!==false&&(r.dt!=null||r.dh!=null);r.bOk=bA!==false&&(r.bt!=null||r.bp!=null);
+ const pm=f(['pir.motion_detected','pir.motion','motion']);
+ r.pm=typeof pm==='boolean'?pm:(pm===0||pm===1?!!pm:null);
+ if(pm===undefined||pm===null)r.miss.push('pir.motion_detected');else if(r.pm===null)r.bad.push('pir='+JSON.stringify(pm));
+ r.pw=f(['pir.warming_up'])===true;r.pOk=r.pm!==null;
+ const u=f(['uptime_ms']),us=f(['uptime_s']);r.up=typeof u==='number'?u:typeof us==='number'?us*1000:null;
+ const fw=f(['firmware_version','firmware','fw']);r.fw=typeof fw==='string'?fw:null;
+ const h=f(['heartbeat_ms','heartbeat','timestamp','last_update','updated_at','ts']);
+ r.hbRaw=h==null?null:h;r.hbEpoch=toEpoch(h);r.key=r.hbRaw!=null?r.hbRaw:r.up;
+ if(r.key==null)r.miss.push('heartbeat/uptime');
+ const le=raw.last_event;r.evt=typeof le==='string'?{m:le,ts:null}:le&&typeof le==='object'&&typeof(le.message||le.msg)==='string'?{m:le.message||le.msg,ts:le.ts||null}:null;
+ return r}
+/* data handling */
+function onData(raw){
+ S.rcv=Date.now();S.err=null;S.raw=raw;S.sub='SUBSCRIBED';
+ if(raw==null){S.n=null;if(S.sig!=='empty'){S.sig='empty';ev('WARN','Telemetry path is empty - creating structure automatically')}if(!S.seeded){S.seeded=true;seedStructure(true)}evalStates();renderAll();return}
+ if(typeof raw!=='object'||Array.isArray(raw)){S.n=null;if(S.sig!=='obj'){S.sig='obj';ev('ERR','Invalid payload: expected a JSON object')}evalStates();renderAll();return}
+ const n=norm(raw);S.n=n;
+ const sig=n.bad.join('|');if(sig!==S.sig){if(sig)ev('WARN','Invalid fields ignored: '+sig);else if(S.sig&&S.sig!=='empty'&&S.sig!=='obj')ev('INFO','Payload fields valid again');S.sig=sig}
+ if(!S.got){S.got=true;ev('INFO','First telemetry payload received')}
+ const fresh=n.key==null||n.key!==S.key;S.key=n.key;
+ if(fresh&&n.key!=null){if(n.hbEpoch){S.hb=n.hbEpoch;S.hbSrc='device clock (timestamp field)'}else{S.hb=Date.now();S.hbSrc='observed change of '+(n.hbRaw!=null?'heartbeat':'uptime')+' counter (no device clock)'}}
+ const at=n.hbEpoch||Date.now();
+ if(fresh){for(const k of['dt','dh','bt','bp','alt'])if(n[k]!=null)S.lv[k]=at;if(n.pm!=null)S.lv.pm=at;
+  if(n.dt!=null||n.dh!=null||n.bt!=null||n.bp!=null){H.push({t:at,dt:n.dt,dh:n.dh,bt:n.bt,bp:n.bp});if(H.length>3600)H.shift();S.dirty=true}}
+ if(S.pm!=null&&n.pm!=null&&n.pm!==S.pm)ev('INFO','PIR '+(n.pm?'motion detected':'motion cleared'));
+ if(n.pm!=null)S.pm=n.pm;
+ if(n.evt){const k=n.evt.m+'|'+n.evt.ts;if(k!==S.evk){S.evk=k;ev('INFO',n.evt.m,'DEVICE')}}
+ evalStates();renderAll()}
+function onErr(e){S.err=(e&&(e.code||e.message))||'unknown';S.sub='ERROR';
+ ev('ERR','Telemetry listener error: '+S.err+(/permission/i.test(S.err)?' (check that the database rules allow public read access)':''));renderAll()}
+/* status evaluation */
+const NM={d:'Satellite link',dht:'DHT11',bmp:'BMP280',pir:'PIR'};
+function evalStates(){
+ const a=S.hb?Date.now()-S.hb:null,d=a==null?'UNKNOWN':a<=ST.stale*1000?'LIVE':a<=ST.off*1000?'STALE':'UNAVAILABLE',n=S.n;
+ const sv=ok=>!n||d==='UNKNOWN'?'UNKNOWN':ok?(d==='LIVE'?'LIVE':'STALE'):'UNAVAILABLE';
+ const s={d,dht:sv(n&&n.dOk),bmp:sv(n&&n.bOk),pir:sv(n&&n.pOk)};
+ for(const k in NM)if(P[k]!==s[k]){const o=P[k];P[k]=s[k];
+  if(o===undefined&&s[k]==='UNKNOWN')continue;if(k!=='d'&&s[k]==='STALE')continue;
+  ev(s[k]==='UNAVAILABLE'?'ERR':s[k]==='STALE'?'WARN':'INFO',NM[k]+': '+(o?o+' \u2192 ':'')+(k==='d'&&s[k]==='UNAVAILABLE'?'SATELLITE LOST - searching for signal':s[k]))}
+ S.s=s;const sg=JSON.stringify(s);const ch=sg!==S.sg;S.sg=sg;return ch}
+/* link status (UI) */
+function linkInfo(){const d=S.s.d;
+ if(S.sub==='ERROR')return{m:'lost',t:'DATABASE ERROR',s:'Cannot read telemetry: '+(S.err||'unknown')};
+ if(S.fb==='DISCONNECTED'||S.fb==='ERROR')return{m:'lost',t:'GROUND LINK OFFLINE',s:'This browser lost its connection to Firebase. Check your internet.'};
+ if(d==='LIVE')return{m:'live',t:'SATELLITE LINKED',s:'Receiving live telemetry from EDU-SAT-01.'};
+ if(d==='STALE')return{m:'weak',t:'SIGNAL WEAK',s:'No new packet for a few seconds. The satellite may be losing power or signal.'};
+ if(d==='UNAVAILABLE')return{m:'lost',t:'SATELLITE LOST',s:'No heartbeat received. Power may be disconnected. Searching for the satellite signal'};
+ return{m:'seek',t:'ACQUIRING SIGNAL',s:'Waiting for the first telemetry packet from the satellite'}}
+function radar(m){const bl=m==='live'?'<circle class="bl" cx="132" cy="68" r="3" fill="none" stroke="var(--ok)" stroke-width="2"/><circle cx="132" cy="68" r="4" fill="var(--ok)"/>':'';
+ const col=m==='live'?'var(--ok)':m==='weak'?'var(--wn)':m==='lost'?'var(--er)':'var(--cy)';
+ return '<svg class="radar" viewBox="0 0 200 200" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="'+col+'" stop-opacity="0"/><stop offset="1" stop-color="'+col+'" stop-opacity=".55"/></linearGradient></defs>'+
+ '<g fill="none" stroke="var(--ln)" stroke-width="1.2"><circle cx="100" cy="100" r="96"/><circle cx="100" cy="100" r="64"/><circle cx="100" cy="100" r="32"/><path d="M100 4V196M4 100H196"/></g>'+
+ '<g class="sw" stroke="'+col+'"><path d="M100 100 L100 4 A96 96 0 0 1 196 100 Z" fill="url(#rg)" stroke="none" transform="rotate(-90 100 100)"/><line x1="100" y1="100" x2="196" y2="100" stroke-width="2"/></g>'+
+ bl+'<circle cx="100" cy="100" r="4" fill="'+col+'"/></svg>'}
+/* rendering */
+const M=[['DHT11 TEMPERATURE','dt','\u00b0C',1,'dht',0,'\ud83c\udf21',0,50,'#ff8a5b'],['RELATIVE HUMIDITY','dh','%',0,'dht',0,'\ud83d\udca7',0,100,'#4fd1ff'],['BMP280 TEMPERATURE','bt','\u00b0C',1,'bmp',0,'\ud83c\udf21',0,50,'#ffb020'],['ATMOSPHERIC PRESSURE','bp','hPa',1,'bmp',0,'\u25ce',950,1050,'#8b7bff'],['ALTITUDE ESTIMATE','alt','m',1,'bmp',1,'\u25b2',null,null,'#38d996']];
+const kind=(k,n)=>k==='alt'?(n.cal===true?'CALIBRATED / REF '+fmt(n.ref,1)+' hPa':n.cal===false?'UNCALIBRATED ESTIMATE':'CALIBRATION UNKNOWN')+' / NOT GPS':'MEASURED';
+const lvTxt=(k,v)=>S.lv[k]?(v==null?'LAST VALID ':'SAMPLE ')+tm(S.lv[k])+' ('+ageSp(S.lv[k])+' ago)':'NO VALID READING YET';
+const pirTxt=n=>!n||!n.pOk?'\u2014':n.pw?'WARM-UP':n.pm?'MOTION':'CLEAR';
+function rows(){const n=S.n||{},s=S.s,o=[];
+ for(const [l,k,u,d,g,der,ic,lo,hi,col] of M){const v=n[k]??null;o.push({l,k,v:fmt(v,d),raw:v,u,st:s[g],note:kind(k,n),lv:lvTxt(k,v),old:s[g]!=='LIVE',ic,lo,hi,col})}
+ o.push({l:'PIR MOTION',k:'pm',v:pirTxt(n),u:'',st:s.pir,note:'MEASURED (DIGITAL INPUT)',lv:S.lv.pm?'SAMPLE '+tm(S.lv.pm)+' ('+ageSp(S.lv.pm)+' ago)':'NO VALID READING YET',old:s.pir!=='LIVE',ic:'\ud83d\udc41',col:n.pm?'#ff5a5f':'#38d996',txt:1});return o}
+function spark(k,col){const v=H.slice(-60).map(x=>x[k]).filter(x=>x!=null);if(v.length<2)return '';const mn=Math.min(...v),mx=Math.max(...v),r=mx-mn||1;
+ const pts=v.map((y,i)=>(i/(v.length-1)*100).toFixed(1)+','+(26-(y-mn)/r*22).toFixed(1)).join(' ');
+ return '<svg class="sp" viewBox="0 0 100 28" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>'}
+function card(r){const pct=r.raw!=null&&r.hi!=null?Math.max(0,Math.min(100,(r.raw-r.lo)/(r.hi-r.lo)*100)):null;
+ const cs=r.st==='STALE'?' stale':r.st==='UNAVAILABLE'?' off':'';
+ return '<div class="c'+cs+'" style="--ac:'+r.col+'"><div class="h"><label>'+r.l+'</label><span class="ic">'+r.ic+'</span></div>'+
+ '<div class="v '+(r.old?'old ':'')+(r.txt?'txt':'')+'">'+r.v+'<span class="u">'+r.u+'</span></div>'+
+ (pct!=null?'<div class="bar2"><i style="width:'+pct.toFixed(0)+'%"></i></div>':'<div style="height:22px"></div>')+
+ (r.k&&r.k!=='pm'&&r.k!=='alt'?spark(r.k,r.col):'')+
+ '<div class="s">'+sch(r.st)+'</div><div class="s">'+r.note+'</div><div class="s">'+r.lv+'</div></div>'}
+function renderTop(){const s=S.s,L=linkInfo();
+ $('t-fb').innerHTML=chip(S.fb,S.fb==='CONNECTED'?'ok':S.fb==='CONNECTING'?'dm':'er');
+ const lc={live:'ok',weak:'wn',lost:'er',seek:'cy'}[L.m];
+ $('t-dev').innerHTML='<span class="'+(L.m==='live'?'pulse':'')+'">'+chip(L.m==='live'?'LINKED':L.m==='weak'?'WEAK':L.m==='lost'?'LOST':'SEARCHING',lc)+'</span>';
+ document.body.classList.remove('live','weak','lost','seek');document.body.classList.add(L.m);
+ const al=$('alert');al.className=L.m==='live'?'':'show '+L.m;
+ al.innerHTML=L.m==='live'?'':'<span class="d pulse"></span><span>'+L.t+' \u2014 <span class="'+(L.m==='lost'||L.m==='seek'?'dots':'')+'">'+esc(L.s)+'</span>'+(S.hb&&L.m!=='seek'?' &nbsp; LAST CONTACT: '+tm(S.hb)+' ('+ageSp(S.hb)+' ago)':'')+'</span>'}
+function renderSec(){
+ if(sec==='overview'){const n=S.n||{},s=S.s,L=linkInfo();
+  $('ovst').innerHTML='<div class="hero '+L.m+'">'+radar(L.m)+'<div style="flex:1;min-width:200px"><h3>'+L.t+'</h3><p><span class="'+(L.m==='lost'||L.m==='seek'?'dots':'')+'">'+esc(L.s)+'</span></p>'+
+   '<div style="display:flex;gap:8px;flex-wrap:wrap">DHT11 '+sch(s.dht)+' BMP280 '+sch(s.bmp)+' PIR '+sch(s.pir)+'</div></div>'+
+   '<div class="mini"><div><i>LAST HEARTBEAT</i><b>'+tm(S.hb)+'</b><div class="s">'+(S.hb?ageSp(S.hb)+' ago':'\u2014')+'</div></div><div><i>FIRMWARE</i><b>'+esc(n.fw||'\u2014')+'</b></div><div><i>DEVICE UPTIME</i><b>'+up(n.up)+'</b></div><div><i>NOTE</i><div class="s">Ground prototype. No orbital, GPS, battery or attitude data.</div></div></div></div>';
+  $('ovc').innerHTML=rows().map(card).join('');
+  evList($('ove'),EV.slice(0,6))}
+ if(sec==='tel'){$('telc').innerHTML=rows().map(card).join('');
+  $('tel').innerHTML='<table><tr><th>MEASUREMENT</th><th>VALUE</th><th>STATE</th><th>TYPE</th><th>LAST VALID</th></tr>'+rows().map(r=>'<tr><td>'+r.l+'</td><td>'+r.v+' '+r.u+'</td><td>'+sch(r.st)+'</td><td>'+r.note+'</td><td>'+r.lv+'</td></tr>').join('')+'</table>'}
+ if(sec==='diag')renderDiag();
+ if(sec==='an')updCharts()}
+function renderDiag(){const n=S.n,k=(a,b)=>'<tr><th>'+a+'</th><td>'+b+'</td></tr>';
+ $('diag').innerHTML=k('FIREBASE CONNECTION',S.fb)+k('LISTENER ('+PATH+')',S.sub+(S.err?' / '+esc(S.err):''))+k('LAST PAYLOAD RECEIVED',S.rcv?tm(S.rcv)+' ('+ageSp(S.rcv)+' ago)':'NONE')+
+ k('HEARTBEAT',S.hb?tm(S.hb)+' ('+ageSp(S.hb)+' ago) via '+esc(S.hbSrc):'NONE - DEVICE STATE UNKNOWN')+k('THRESHOLDS','weak > '+ST.stale+' s, lost > '+ST.off+' s')+
+ k('SENSOR STATES','DHT11 '+S.s.dht+' / BMP280 '+S.s.bmp+' / PIR '+S.s.pir)+k('MISSING FIELDS',n?esc(n.miss.join(', ')||'none'):'\u2014')+k('INVALID FIELDS',n?esc(n.bad.join(', ')||'none'):'\u2014')+k('SESSION HISTORY SAMPLES',H.length);
+ $('pl').textContent=S.raw===null||S.raw===undefined?(S.rcv?'PATH IS EMPTY (null)':'NO PAYLOAD'):JSON.stringify(S.raw,null,2)}
+function evList(el,a){el.innerHTML=a.length?a.map(e=>'<li><span>'+tm(e.t)+'</span><b class="'+(e.sev==='ERR'?'er':e.sev==='WARN'?'wn':'cy')+'">'+e.sev+'</b><span>['+e.src+']</span>'+esc(e.msg)+'</li>').join(''):'<li class="dm">NO EVENTS RECORDED YET</li>'}
+function renderEv(){evList($('evl'),EV.filter(e=>evf==='ALL'||e.src===evf));evList($('ove'),EV.slice(0,6))}
+function renderAll(){renderTop();renderSec()}
+/* analytics */
+function mkCharts(){if(CH||typeof Chart==='undefined')return;
+ const o=y=>({responsive:true,maintainAspectRatio:false,animation:false,spanGaps:false,plugins:{legend:{labels:{color:'#9fb7cc',boxWidth:10}}},scales:{x:{ticks:{color:'#7f97ad',maxTicksLimit:6},grid:{color:'rgba(140,190,255,.08)'}},y:{title:{display:true,text:y,color:'#7f97ad'},ticks:{color:'#7f97ad'},grid:{color:'rgba(140,190,255,.08)'}}},elements:{point:{radius:0},line:{borderWidth:2,tension:.35}}});
+ const mk=(id,y,ds)=>new Chart($(id),{type:'line',data:{labels:[],datasets:ds.map(([label,borderColor])=>({label,borderColor,backgroundColor:borderColor+'1f',fill:true,data:[]}))},options:o(y)});
+ CH={t:mk('c-t','Temperature (\u00b0C)',[['DHT11','#4fd1ff'],['BMP280','#ffb020']]),h:mk('c-h','Relative humidity (%)',[['DHT11','#38d996']]),p:mk('c-p','Pressure (hPa)',[['BMP280','#c3a6ff']])}}
+const vis=()=>{const m=+ST.range;return m?H.filter(x=>x.t>=Date.now()-m*60000):H};
+function updCharts(){mkCharts();const v=vis();
+ $('anempty').textContent=typeof Chart==='undefined'?'Chart.js failed to load (CDN unreachable). Stats and CSV still work.':v.length?'':'NO HISTORY YET: waiting for valid telemetry in this session.';
+ if(CH){const L=v.map(x=>tm(x.t)),set=(c,a,b)=>{c.data.labels=L;c.data.datasets[0].data=v.map(x=>x[a]);if(b)c.data.datasets[1].data=v.map(x=>x[b]);c.update('none')};set(CH.t,'dt','bt');set(CH.h,'dh');set(CH.p,'bp')}
+ const st=(l,k,d)=>{const a=v.map(x=>x[k]).filter(x=>x!=null);return '<tr><td>'+l+'</td><td>'+(a.length?Math.min(...a).toFixed(d):'\u2014')+'</td><td>'+(a.length?Math.max(...a).toFixed(d):'\u2014')+'</td><td>'+(a.length?(a.reduce((p,c)=>p+c,0)/a.length).toFixed(d):'\u2014')+'</td><td>'+a.length+'</td></tr>'};
+ $('stats').innerHTML='<table><tr><th>SERIES</th><th>MIN</th><th>MAX</th><th>AVG</th><th>VALID N</th></tr>'+st('DHT11 \u00b0C','dt',1)+st('HUMIDITY %','dh',0)+st('BMP280 \u00b0C','bt',1)+st('PRESSURE hPa','bp',1)+'</table>';S.dirty=false}
+function csv(){const v=vis();if(!v.length){alert('No history to export yet.');return}
+ const t=v.map(x=>[new Date(x.t).toISOString(),x.dt,x.dh,x.bt,x.bp].map(c=>c==null?'':c).join(','));
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['utc_iso,dht11_temp_c,humidity_pct,bmp280_temp_c,pressure_hpa\n'+t.join('\n')],{type:'text/csv'}));a.download='EDU-SAT-01_session.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1e3)}
+/* navigation */
+function go(id){sec=id;document.querySelectorAll('.sec').forEach(e=>e.classList.toggle('on',e.id==='s-'+id));
+ document.querySelectorAll('#nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.s===id));
+ history.replaceState(null,'','#'+id);sync3d();renderSec();if(id==='evt')renderEv()}
+function sync3d(){const h=sec==='overview'?$('hostov'):sec==='sat'?$('hostsat'):null;
+ if(h){h.appendChild($('view3d'));V.start&&V.start()}else V.stop&&V.stop()}
+/* settings */
+function applySettings(){document.documentElement.classList.toggle('rm',rm());$('b-rot').setAttribute('aria-pressed',ST.rot);
+ for(const [i,k] of [['s-stale','stale'],['s-off','off'],['s-range','range'],['rng','range'],['s-clock','clock']])$(i).value=ST[k];$('s-rot').checked=ST.rot;$('s-rm').checked=ST.rm}
+function setKey(k,v){ST[k]=v;if(ST.off<=ST.stale)ST.off=ST.stale+1;save();applySettings();evalStates();renderAll();$('clk').textContent=clock()}
+const clock=()=>ST.clock==='utc'?new Date().toISOString().slice(0,19).replace('T',' ')+' UTC':new Date().toLocaleString();
+/* 3D */
+async function init3d(){
+ try{
+  const T=await import('three'),{OrbitControls}=await import('three/addons/controls/OrbitControls.js'),{RoomEnvironment}=await import('three/addons/environments/RoomEnvironment.js');
+  const box=$('cv'),r=new T.WebGLRenderer({antialias:true});r.setPixelRatio(Math.min(devicePixelRatio,2));box.appendChild(r.domElement);
+  const sc=new T.Scene(),pm=new T.PMREMGenerator(r);sc.environment=pm.fromScene(new RoomEnvironment(),.04).texture;
+  const cam=new T.PerspectiveCamera(40,1,.1,100),home=()=>{cam.position.set(4.6,2.6,5.4);ct.target.set(0,0,0);ct.update()};
+  const ct=new OrbitControls(cam,r.domElement);ct.enableDamping=true;ct.minDistance=3;ct.maxDistance=14;ct.autoRotateSpeed=1.2;home();
+  const dl=new T.DirectionalLight(0xffffff,2.4);dl.position.set(5,4,3);sc.add(dl);sc.add(new T.AmbientLight(0x6688aa,.4));
+  const metal=new T.MeshStandardMaterial({color:0xaab4c0,metalness:.9,roughness:.35}),dark=new T.MeshStandardMaterial({color:0x2b3440,metalness:.7,roughness:.5});
+  const cv=document.createElement('canvas');cv.width=cv.height=128;const x=cv.getContext('2d');x.fillStyle='#0f2a55';x.fillRect(0,0,128,128);x.strokeStyle='#5c86c4';x.lineWidth=2;for(let i=0;i<=128;i+=32){x.beginPath();x.moveTo(i,0);x.lineTo(i,128);x.moveTo(0,i);x.lineTo(128,i);x.stroke()}
+  const tex=new T.CanvasTexture(cv),cell=new T.MeshStandardMaterial({map:tex,metalness:.6,roughness:.35}),G=new T.Group();sc.add(G);
+  const add=(g,m,px,py,pz,rz,rx)=>{const o=new T.Mesh(g,m);o.position.set(px,py,pz);if(rz)o.rotation.z=rz;if(rx)o.rotation.x=rx;G.add(o);return o};
+  const bus=add(new T.BoxGeometry(1.2,1.2,2),metal,0,0,0);bus.add(new T.LineSegments(new T.EdgesGeometry(bus.geometry),new T.LineBasicMaterial({color:0x4fd1ff,transparent:true,opacity:.5})));
+  for(const sx of[-1,1])for(const sy of[-1,1])add(new T.CylinderGeometry(.05,.05,2.1,8),dark,sx*.6,sy*.6,0,0,Math.PI/2);
+  for(const z of[-1.05,1.05])add(new T.BoxGeometry(1.3,1.3,.06),dark,0,0,z);
+  add(new T.CylinderGeometry(.02,.02,1.2,8),metal,0,1.2,0);add(new T.SphereGeometry(.05,12,8),metal,0,1.8,0);add(new T.ConeGeometry(.22,.12,24,1,true),metal,0,.66,.0);
+  for(const s of[-1,1]){add(new T.CylinderGeometry(.04,.04,.9,8),dark,s*1.05,0,0,Math.PI/2);
+   for(let i=0;i<3;i++){const cx=s*(1.55+i*1.06);add(new T.BoxGeometry(1,.03,1.5),cell,cx,0,0);add(new T.CylinderGeometry(.025,.025,1.5,8),dark,cx-s*.53,0,0,0,Math.PI/2)}}
+  const ax=new T.AxesHelper(2.2);ax.visible=false;sc.add(ax);
+  const sp=new Float32Array(1800);for(let i=0;i<1800;i+=3){const a=Math.random()*6.283,b=Math.acos(2*Math.random()-1),d=40;sp[i]=d*Math.sin(b)*Math.cos(a);sp[i+1]=d*Math.sin(b)*Math.sin(a);sp[i+2]=d*Math.cos(b)}
+  const sg=new T.BufferGeometry();sg.setAttribute('position',new T.BufferAttribute(sp,3));sc.add(new T.Points(sg,new T.PointsMaterial({color:0x9fb7cc,size:.08})));
+  let raf=0;const loop=()=>{raf=requestAnimationFrame(loop);ct.autoRotate=ST.rot&&!rm();ct.update();r.render(sc,cam)};
+  const ro=new ResizeObserver(()=>{const w=box.clientWidth,h=box.clientHeight;if(w&&h){r.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}});ro.observe(box);
+  const vc=()=>document.hidden?V.stop():sync3d();document.addEventListener('visibilitychange',vc);
+  V.start=()=>{if(!raf&&!document.hidden)loop()};V.stop=()=>{cancelAnimationFrame(raf);raf=0};
+  V.reset=home;V.axes=()=>ax.visible=!ax.visible;
+  V.dispose=()=>{V.stop();ro.disconnect();document.removeEventListener('visibilitychange',vc);ct.dispose();sc.traverse(o=>{o.geometry&&o.geometry.dispose();o.material&&o.material.dispose()});tex.dispose();pm.dispose();r.dispose()};
+  sync3d()
+ }catch(e){const m=document.createElement('div');m.className='msg';m.textContent='3D VIEWPORT UNAVAILABLE ('+(e&&e.message||e)+'). WebGL or the Three.js CDN could not load. Telemetry is unaffected.';$('cv').appendChild(m);
+  ['b-reset','b-rot','b-axes'].forEach(i=>$(i).disabled=true);ev('ERR','3D renderer initialization failed: '+(e&&e.message||e))}}
+/* database structure + demo device */
+const SKELETON=()=>({firmware_version:'1.0.0',uptime_ms:0,dht:{available:false},bmp280:{available:false},pir:{motion_detected:false,warming_up:false},last_event:{message:'Structure created by dashboard',ts:Date.now()}});
+async function seedStructure(auto){
+ if(!fbApi){ev('ERR','Firebase is not ready yet');return}
+ try{await fbApi.write(PATH,SKELETON());ev('INFO',(auto?'Auto-created':'Created')+' database structure at '+PATH)}
+ catch(e){ev('ERR','Could not create structure: '+(e.code||e.message||e)+' (check that the database rules allow write on '+PATH+')')}}
+let sim=null;
+function simStop(){if(sim){clearInterval(sim);sim=null}$('b-sim').setAttribute('aria-pressed','false');$('b-sim').textContent='START DEMO DEVICE'}
+function simToggle(){
+ if(sim){simStop();ev('INFO','Demo device stopped');return}
+ if(!fbApi){ev('ERR','Firebase is not ready yet');return}
+ let up=0,motion=false,evt=null,fails=0;
+ const r1=x=>Math.round(x*10)/10;
+ const step=async()=>{
+  up+=2000;if(Math.random()<.08){motion=!motion;evt={message:motion?'Motion detected by PIR':'Motion cleared',ts:Date.now()}}
+  const dt=27+2*Math.sin(up/30000)+(Math.random()-.5)*.2,dh=55+6*Math.cos(up/45000)+(Math.random()-.5)*.4,
+        bt=dt-.4+(Math.random()-.5)*.1,bp=1008+2*Math.sin(up/60000)+(Math.random()-.5)*.1;
+  const o={firmware_version:'1.0.0-demo',uptime_ms:up,dht:{available:true,temperature_c:r1(dt),humidity_pct:r1(dh)},bmp280:{available:true,temperature_c:r1(bt),pressure_hpa:r1(bp)},pir:{motion_detected:motion,warming_up:false}};
+  if(evt)o.last_event=evt;
+  try{await fbApi.write(PATH,o);fails=0}catch(e){if(++fails===1)ev('ERR','Demo write failed: '+(e.code||e.message||e));if(fails>=3){simStop();ev('ERR','Demo device stopped after repeated write failures')}}};
+ $('b-sim').setAttribute('aria-pressed','true');$('b-sim').textContent='STOP DEMO DEVICE';
+ ev('INFO','Demo device started - writing simulated telemetry every 2 s');step();sim=setInterval(step,2000)}
+/* firebase */
+async function boot(){
+ try{
+  const [A,D]=await Promise.all([import(FB+'firebase-app.js'),import(FB+'firebase-database.js')]);
+  const app=A.getApps().length?A.getApp():A.initializeApp(FC),db=D.getDatabase(app);
+  fbApi={write:(path,val)=>D.set(D.ref(db,path),val)};
+  D.onValue(D.ref(db,'.info/connected'),s=>{const c=s.val()===true;
+   if(c&&S.fb!=='CONNECTED'){S.fb='CONNECTED';ev('INFO','Firebase connection '+(S.was?'restored':'established'));S.was=true}
+   else if(!c&&S.fb==='CONNECTED'){S.fb='DISCONNECTED';ev('WARN','Firebase connection lost')}renderTop()},e=>{S.fb='ERROR';ev('ERR','Firebase connection monitor error: '+e.code);renderTop()});
+  S.sub='WAITING FOR DATA';
+  unsub=D.onValue(D.ref(db,PATH),s=>onData(s.val()),onErr);
+  renderAll();
+  addEventListener('pagehide',()=>{unsub&&unsub()})
+ }catch(e){S.fb='ERROR';$('login').hidden=false;$('lbox').innerHTML='<b class="er">FIREBASE SDK FAILED TO LOAD</b><div class="s">'+esc(e.message||e)+'<br>Check network access to www.gstatic.com and serve this file over HTTP(S).</div>';ev('ERR','Firebase SDK failed to load: '+(e.message||e));renderTop()}}
+/* init */
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>go(b.dataset.s));
+const num=(id,k)=>$(id).onchange=e=>setKey(k,Math.max(2,+e.target.value||DEF[k]));
+num('s-stale','stale');num('s-off','off');
+for(const i of['s-range','rng'])$(i).onchange=e=>setKey('range',e.target.value);
+$('s-clock').onchange=e=>setKey('clock',e.target.value);$('s-rot').onchange=e=>setKey('rot',e.target.checked);$('s-rm').onchange=e=>setKey('rm',e.target.checked);
+$('b-rot').onclick=()=>setKey('rot',!ST.rot);$('b-reset').onclick=()=>V.reset&&V.reset();$('b-axes').onclick=e=>{if(V.axes)e.target.setAttribute('aria-pressed',V.axes())};
+$('b-fs').onclick=()=>{const e=$('view3d');document.fullscreenElement?document.exitFullscreen():e.requestFullscreen&&e.requestFullscreen()};
+$('b-seed').onclick=()=>seedStructure(false);$('b-sim').onclick=simToggle;$('csv').onclick=csv;$('evf').onchange=e=>{evf=e.target.value;renderEv()};
+$('evc').onclick=()=>{if(confirm('Clear the event log? This cannot be undone.')){EV=[];renderEv()}};
+mq.addEventListener&&mq.addEventListener('change',applySettings);
+const tick=setInterval(()=>{$('clk').textContent=clock();if(evalStates())renderAll();else document.querySelectorAll('[data-age]').forEach(e=>e.textContent=age(+e.dataset.age))},1000);
+addEventListener('pagehide',()=>{clearInterval(tick);sim&&clearInterval(sim);V.dispose&&V.dispose()});
+applySettings();go(['overview','tel','sat','an','evt','diag','set'].includes(location.hash.slice(1))?location.hash.slice(1):'overview');
+$('clk').textContent=clock();renderAll();init3d();boot();
+</script></body></html>
 
